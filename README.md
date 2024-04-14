@@ -13,18 +13,22 @@ Google API key you can get here: https://console.cloud.google.com/apis/credentia
 
 ## Usage:
 
+```
 gemini_turbo [OPTIONS]
 
 Application Options:
---model= Model (default: gemini-1.5-pro-preview-0409) [$GEMINI_MODEL]
---project= Google Project ID [$GOOGLE_PROJECT_ID]
---cred= Google Credential File [$GOOGLE_CRED_FILE]
---in= Input directory (default: ./prompts) [$INPUT_DIR]
---out= Output directory (default: ./out) [$OUTPUT_DIR]
---max_tokens= Max tokens (default: 8000) [$MAX_TOKENS]
+
+    --model= Model (default: gemini-1.5-pro-preview-0409) [$GEMINI_MODEL]
+    --project= Google Project ID [$GOOGLE_PROJECT_ID]
+    --cred= Google Credential File [$GOOGLE_CRED_FILE]
+    --in= Input directory (default: ./prompts) [$INPUT_DIR]
+    --out= Output directory (default: ./out) [$OUTPUT_DIR]
+    --max_tokens= Max tokens (default: 8000) [$MAX_TOKENS]
 
 Help Options:
 -h, --help Show this help message
+
+```
 
 ## Example
 
