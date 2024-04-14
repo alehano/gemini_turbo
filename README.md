@@ -24,10 +24,10 @@ Application Options:
       --cred=       Google Credential File [$GOOGLE_CRED_FILE]
       --in=         Input directory (default: ./prompts) [$INPUT_DIR]
       --out=        Output directory (default: ./out) [$OUTPUT_DIR]
+      --temp=       Temperature (default: 0.5) [$TEMPERATURE]
       --max_tokens= Max tokens (default: 8000) [$MAX_TOKENS]
       --workers=    Workers (default: 500) [$WORKERS]
-      --delay=      Delay between requests in ms. Should be more than 60000 / req per min limit (5 by default) / number of
-                    locations (default: 500ms) [$DELAY]
+      --delay=      Delay between requests in ms. Should be more than 60000 / req per min limit (5 by default) / number of locations (default: 500ms) [$DELAY]
       --timeout=    Timeout for each request (default: 300s) [$TIMEOUT]
       --limit=      Limit files to process. Can be used for testing. 0 means no limit (default: 0) [$LIMIT]
 
