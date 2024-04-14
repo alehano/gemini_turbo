@@ -5,20 +5,29 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/vertexai/genai"
+	"github.com/umputun/go-flags"
 
 	"google.golang.org/api/option"
 )
 
-var model = os.Getenv("GEMINI_MODEL")
+type options struct {
+	Model           string `long:"model" env:"GEMINI_MODEL" default:"gemini-1.5-pro-preview-0409" description:"Model"`
+	GoogleProjectID string `long:"project" env:"GOOGLE_PROJECT_ID" description:"Google Project ID"`
+	CredFile        string `long:"cred" env:"GOOGLE_CRED_FILE" description:"Google Credential File"`
+	InputDir        string `long:"in" env:"INPUT_DIR" default:"./prompts" description:"Input directory"`
+	OutputDir       string `long:"out" env:"OUTPUT_DIR" default:"./out" description:"Output directory"`
+	MaxTokens       int    `long:"max_tokens" env:"MAX_TOKENS" default:"8000" description:"Max tokens"`
+}
 
-var googleProjectID = os.Getenv("GOOGLE_PROJECT_ID")
+// var model = os.Getenv("GEMINI_MODEL")
 
-var credFile = os.Getenv("GOOGLE_CRED_FILE")
+// var googleProjectID = os.Getenv("GOOGLE_PROJECT_ID")
+
+// var credFile = os.Getenv("GOOGLE_CRED_FILE")
 
 const limit = 0
 
@@ -28,8 +37,8 @@ var delay = (60000 / 5 / 26) * time.Millisecond
 
 const timeout = 5 * time.Minute
 
-var inputDir = os.Getenv("INPUT_DIR")
-var outputDir = os.Getenv("OUTPUT_DIR")
+// var inputDir = os.Getenv("INPUT_DIR")
+// var outputDir = os.Getenv("OUTPUT_DIR")
 
 var locations = []string{
 	"us-south1",
@@ -65,28 +74,28 @@ const greenColor = "\033[32m"
 const resetColor = "\033[0m"
 
 func main() {
-	locationIndex := 0
-
-	maxTokens := 8000
-	tok, err := strconv.Atoi(os.Getenv("MAX_TOKENS"))
-	if err == nil {
-		fmt.Printf("Setting max tokens to %d\n", tok)
-		maxTokens = tok
-	} else {
-		fmt.Printf("Using default max tokens: %d\n", maxTokens)
+	var opts options
+	p := flags.NewParser(&opts, flags.PrintErrors|flags.PassDoubleDash|flags.HelpFlag)
+	if _, err := p.Parse(); err != nil {
+		if err.(*flags.Error).Type != flags.ErrHelp {
+			logError("cli error: ", err)
+		}
+		os.Exit(2)
 	}
 
-	fileNames, err := getFilesList(inputDir)
+	locationIndex := 0
+
+	fileNames, err := getFilesList(opts.InputDir)
 	if err != nil {
-		logError("Error reading input directory: ", err)
+		logError(fmt.Sprintf("Error reading input directory %s: ", opts.InputDir), err)
 		return
 	}
 
 	if len(fileNames) == 0 {
-		fmt.Println("No .prompt files found in the input directory: ", inputDir)
+		fmt.Println("No .prompt files found in the input directory: ", opts.InputDir)
 	}
 
-	if err = os.MkdirAll(outputDir, 0755); err != nil {
+	if err = os.MkdirAll(opts.OutputDir, 0755); err != nil {
 		logError("Error creating directory: ", err)
 		return
 	}
@@ -100,7 +109,7 @@ func main() {
 	outputFile := ""
 	for i, fName := range fileNames {
 		outputFileName := strings.TrimSuffix(fName, ".prompt")
-		outputFile = fmt.Sprintf("%s/%s", outputDir, outputFileName)
+		outputFile = fmt.Sprintf("%s/%s", opts.OutputDir, outputFileName)
 		if _, err := os.Stat(outputFile); err == nil {
 			fmt.Printf("File %s already exists. Skipping.\n", outputFile)
 			completed++
@@ -115,7 +124,7 @@ func main() {
 		}
 
 		// Get prompt from outputFilePath
-		prompt, err := readFile(fmt.Sprintf("%s/%s", inputDir, fName))
+		prompt, err := readFile(fmt.Sprintf("%s/%s", opts.InputDir, fName))
 		if err != nil {
 			logError("Error read file error: ", err)
 			completed++
@@ -141,7 +150,8 @@ func main() {
 			}()
 
 			fmt.Printf("%d/%d %s Processing: %s\n", i+1, total, nowDateTime(), outputFile)
-			output, err := QueryGemini(ctx, i+1, maxTokens, curLocation, prompt)
+			output, err := QueryGemini(ctx, opts.GoogleProjectID, opts.CredFile, opts.Model,
+				i+1, opts.MaxTokens, curLocation, prompt)
 			if err != nil {
 				results <- err
 				return
@@ -184,7 +194,7 @@ func logError(pre string, err error) {
 	}
 }
 
-func QueryGemini(ctx context.Context, jobN, maxTokens int, location, prompt string) (string, error) {
+func QueryGemini(ctx context.Context, googleProjectID, credFile, model string, jobN, maxTokens int, location, prompt string) (string, error) {
 	client, err := genai.NewClient(ctx, googleProjectID, location,
 		option.WithCredentialsFile(credFile),
 	)

@@ -9,17 +9,12 @@ Adds promts files in the prompts INPUT_DIR.
 It must have .prompt extension. After generation the output will be saved in the OUTPUT_DIR
 with the same name but without the .prompt extension.
 
-Set options in environment variables.
+Google API key you can get here: https://console.cloud.google.com/apis/credentials
 
-Example:
+## Usage
 
-```
-GOOGLE_PROJECT_ID=1234567890
-GOOGLE_CRED_FILE=./cred/proj-12346-7464f599b1c7.json
-GEMINI_MODEL=gemini-1.5-pro-preview-0409
-MAX_TOKENS=8000
-INPUT_DIR=./prompts
-OUTPUT_DIR=./out
-```
+./gemini_turbo --project=1234567890 --cred=./cred/proj-12346-7464f599b1c7.json
 
-You can set it in start.sh file and run it ./start.sh
+## Options help
+
+./gemini_turbo --help

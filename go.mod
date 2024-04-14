@@ -4,6 +4,7 @@ go 1.22.1
 
 require (
 	cloud.google.com/go/vertexai v0.7.1
+	github.com/umputun/go-flags v1.5.1
 	google.golang.org/api v0.172.0
 )
 

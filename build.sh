@@ -1,4 +1,6 @@
 #!/bin/sh
 
-# Build go for ARM64 macOS
-GOOS=darwin GOARCH=arm64 go build -o gemini_turbo
+# Build 
+GOOS=linux GOARCH=arm64 go build -o ./releases/linux_arm64/gemini_turbo
+GOOS=linux GOARCH=amd64 go build -o ./releases/linux_amd64/gemini_turbo
+GOOS=darwin GOARCH=arm64 go build -o ./releases/macos_arm64/gemini_turbo
