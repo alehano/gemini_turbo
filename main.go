@@ -10,7 +10,6 @@ import (
 
 	"cloud.google.com/go/vertexai/genai"
 	"github.com/umputun/go-flags"
-
 	"google.golang.org/api/option"
 )
 
@@ -20,6 +19,7 @@ type options struct {
 	CredFile        string        `long:"cred" env:"GOOGLE_CRED_FILE" description:"Google Credential File"`
 	InputDir        string        `long:"in" env:"INPUT_DIR" default:"./prompts" description:"Input directory"`
 	OutputDir       string        `long:"out" env:"OUTPUT_DIR" default:"./out" description:"Output directory"`
+	Temperature     float32       `long:"temp" env:"TEMPERATURE" default:"0.5" description:"Temperature"`
 	MaxTokens       int           `long:"max_tokens" env:"MAX_TOKENS" default:"8000" description:"Max tokens"`
 	Workers         int           `long:"workers" env:"WORKERS" default:"500" description:"Workers"`
 	Delay           time.Duration `long:"delay" env:"DELAY" default:"500ms" description:"Delay between requests in ms. Should be more than 60000 / req per min limit (5 by default) / number of locations"`
@@ -70,8 +70,6 @@ func main() {
 		os.Exit(2)
 	}
 
-	locationIndex := 0
-
 	fileNames, err := getFilesList(opts.InputDir)
 	if err != nil {
 		logError(fmt.Sprintf("Error reading input directory %s: ", opts.InputDir), err)
@@ -87,6 +85,20 @@ func main() {
 		return
 	}
 
+	clientPool := []*genai.Client{}
+	for _, location := range locations {
+		ctx, cancel := context.WithTimeout(context.Background(), opts.Timeout)
+		defer cancel()
+		client, err := genai.NewClient(ctx, opts.GoogleProjectID, location,
+			option.WithCredentialsFile(opts.CredFile),
+		)
+		if err != nil {
+			logError("Error creating client: ", err)
+			return
+		}
+		clientPool = append(clientPool, client)
+	}
+
 	semaphore := make(chan struct{}, opts.Workers)
 	results := make(chan error)
 	ticker := time.NewTicker(opts.Delay)
@@ -94,6 +106,7 @@ func main() {
 	total := len(fileNames)
 	files := map[string]struct{}{}
 	outputFile := ""
+	clientIndex := 0
 	for i, fName := range fileNames {
 		outputFileName := strings.TrimSuffix(fName, ".prompt")
 		outputFile = fmt.Sprintf("%s/%s", opts.OutputDir, outputFileName)
@@ -121,10 +134,10 @@ func main() {
 		// Mark the file as being processed
 		files[outputFile] = struct{}{}
 
-		curLocation := locations[locationIndex]
-		locationIndex++
-		if locationIndex >= len(locations) {
-			locationIndex = 0
+		client := clientPool[clientIndex]
+		clientIndex++
+		if clientIndex >= len(clientPool) {
+			clientIndex = 0
 		}
 
 		go func(count int, prompt, outputFile string) {
@@ -137,8 +150,8 @@ func main() {
 			}()
 
 			fmt.Printf("%d/%d %s Processing: %s\n", i+1, total, nowDateTime(), outputFile)
-			output, err := QueryGemini(ctx, opts.GoogleProjectID, opts.CredFile, opts.Model,
-				i+1, opts.MaxTokens, curLocation, prompt)
+			output, err := QueryGemini(ctx, client, opts.Model,
+				i+1, &opts.Temperature, opts.MaxTokens, prompt)
 			if err != nil {
 				results <- err
 				return
@@ -181,15 +194,34 @@ func logError(pre string, err error) {
 	}
 }
 
-func QueryGemini(ctx context.Context, googleProjectID, credFile, model string, jobN, maxTokens int, location, prompt string) (string, error) {
-	client, err := genai.NewClient(ctx, googleProjectID, location,
-		option.WithCredentialsFile(credFile),
-	)
-	if err != nil {
-		return "", err
-	}
+func QueryGemini(ctx context.Context, client *genai.Client, model string, jobN int, temperature *float32, maxTokens int, prompt string) (string, error) {
 	gemini := client.GenerativeModel(model)
 	gemini.GenerationConfig.SetMaxOutputTokens(int32(maxTokens))
+	if temperature != nil {
+		gemini.Temperature = temperature
+	}
+	gemini.SafetySettings = []*genai.SafetySetting{
+		{
+			Category:  genai.HarmCategoryUnspecified,
+			Threshold: genai.HarmBlockNone,
+		},
+		{
+			Category:  genai.HarmCategoryHateSpeech,
+			Threshold: genai.HarmBlockNone,
+		},
+		{
+			Category:  genai.HarmCategoryDangerousContent,
+			Threshold: genai.HarmBlockNone,
+		},
+		{
+			Category:  genai.HarmCategoryHarassment,
+			Threshold: genai.HarmBlockNone,
+		},
+		{
+			Category:  genai.HarmCategorySexuallyExplicit,
+			Threshold: genai.HarmBlockNone,
+		},
+	}
 	resp, err := gemini.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
 		return "", fmt.Errorf("error in job %d: %v", jobN, err)
