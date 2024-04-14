@@ -192,11 +192,11 @@ func QueryGemini(ctx context.Context, googleProjectID, credFile, model string, j
 	gemini.GenerationConfig.SetMaxOutputTokens(int32(maxTokens))
 	resp, err := gemini.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error in job %d: %v", jobN, err)
 	}
 
 	if resp == nil {
-		return "", fmt.Errorf("empty response")
+		return "", fmt.Errorf("empty response, job %d", jobN)
 	}
 
 	res := ""
