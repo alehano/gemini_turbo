@@ -195,19 +195,24 @@ func QueryGemini(ctx context.Context, googleProjectID, credFile, model string, j
 		return "", err
 	}
 
+	if resp == nil {
+		return "", fmt.Errorf("empty response")
+	}
+
 	res := ""
 
 	if resp.PromptFeedback != nil && resp.PromptFeedback.BlockReasonMessage != "" {
 		fmt.Printf(redColor+"Prompt blocked: %s\n"+resetColor, resp.PromptFeedback.BlockReasonMessage)
 	}
 
-	if len(resp.Candidates) > 0 && resp.Candidates[0].FinishMessage != "" {
+	if len(resp.Candidates) > 0 && resp.Candidates[0] != nil && resp.Candidates[0].FinishMessage != "" {
 		fmt.Printf(redColor+"Prompt finished: %s\n"+resetColor, resp.Candidates[0].FinishMessage)
 	}
 
 	fmt.Printf(greenColor+"%s Job %d done\n"+resetColor, nowDateTime(), jobN)
 
-	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
+	if len(resp.Candidates) > 0 && resp.Candidates[0] != nil && resp.Candidates[0].Content != nil &&
+		len(resp.Candidates[0].Content.Parts) > 0 {
 		for _, part := range resp.Candidates[0].Content.Parts {
 			res += fmt.Sprintf("%v", part)
 		}
