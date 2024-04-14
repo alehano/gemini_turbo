@@ -1,7 +1,7 @@
 # Gemini text generation
 
 This is a text generation tool that uses Gemini AI to generate text based on prompts files.
-Utilizes different locations to speed up the process.
+Utilizes different locations and performs jobs in parallel to speed up the process.
 
 ## Setup
 
