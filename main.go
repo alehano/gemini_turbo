@@ -201,14 +201,6 @@ func QueryGemini(ctx context.Context, googleProjectID, credFile, model string, j
 
 	res := ""
 
-	if resp.PromptFeedback != nil && resp.PromptFeedback.BlockReasonMessage != "" {
-		fmt.Printf(redColor+"Prompt blocked: %s\n"+resetColor, resp.PromptFeedback.BlockReasonMessage)
-	}
-
-	if len(resp.Candidates) > 0 && resp.Candidates[0] != nil && resp.Candidates[0].FinishMessage != "" {
-		fmt.Printf(redColor+"Prompt finished: %s\n"+resetColor, resp.Candidates[0].FinishMessage)
-	}
-
 	fmt.Printf(greenColor+"%s Job %d done\n"+resetColor, nowDateTime(), jobN)
 
 	if len(resp.Candidates) > 0 && resp.Candidates[0] != nil && resp.Candidates[0].Content != nil &&
