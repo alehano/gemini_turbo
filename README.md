@@ -9,7 +9,8 @@ Adds promts files in the prompts INPUT_DIR.
 It must have .prompt extension. After generation the output will be saved in the OUTPUT_DIR
 with the same name but without the .prompt extension.
 
-Google API key you can get here: https://console.cloud.google.com/apis/credentials
+You need Vortex API key to use this tool.
+Credentials file you can get here: https://console.cloud.google.com/apis/credentials
 
 ## Usage:
 
