@@ -1,4 +1,4 @@
-# Gemini text generation
+# Gemini Turbo text generation
 
 This is a text generation tool that uses Gemini AI to generate text based on prompts files.
 Utilizes different locations and performs jobs in parallel to speed up the process.
