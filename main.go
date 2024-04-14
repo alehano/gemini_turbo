@@ -15,30 +15,17 @@ import (
 )
 
 type options struct {
-	Model           string `long:"model" env:"GEMINI_MODEL" default:"gemini-1.5-pro-preview-0409" description:"Model"`
-	GoogleProjectID string `long:"project" env:"GOOGLE_PROJECT_ID" description:"Google Project ID"`
-	CredFile        string `long:"cred" env:"GOOGLE_CRED_FILE" description:"Google Credential File"`
-	InputDir        string `long:"in" env:"INPUT_DIR" default:"./prompts" description:"Input directory"`
-	OutputDir       string `long:"out" env:"OUTPUT_DIR" default:"./out" description:"Output directory"`
-	MaxTokens       int    `long:"max_tokens" env:"MAX_TOKENS" default:"8000" description:"Max tokens"`
+	Model           string        `long:"model" env:"GEMINI_MODEL" default:"gemini-1.5-pro-preview-0409" description:"Model"`
+	GoogleProjectID string        `long:"project" env:"GOOGLE_PROJECT_ID" description:"Google Project ID"`
+	CredFile        string        `long:"cred" env:"GOOGLE_CRED_FILE" description:"Google Credential File"`
+	InputDir        string        `long:"in" env:"INPUT_DIR" default:"./prompts" description:"Input directory"`
+	OutputDir       string        `long:"out" env:"OUTPUT_DIR" default:"./out" description:"Output directory"`
+	MaxTokens       int           `long:"max_tokens" env:"MAX_TOKENS" default:"8000" description:"Max tokens"`
+	Workers         int           `long:"workers" env:"WORKERS" default:"500" description:"Workers"`
+	Delay           time.Duration `long:"Delay" env:"DELAY" default:"500ms" description:"Delay between requests in ms. Should be more than 60000 / req per min limit (5 by default) / number of locations"`
+	Timeout         time.Duration `long:"Timeout" env:"TIMEOUT" default:"300s" description:"Timeout for each request"`
+	Limit           int           `long:"Limit" env:"LIMIT" default:"0" description:"Limit files to process. Can be used for testing. 0 means no limit"`
 }
-
-// var model = os.Getenv("GEMINI_MODEL")
-
-// var googleProjectID = os.Getenv("GOOGLE_PROJECT_ID")
-
-// var credFile = os.Getenv("GOOGLE_CRED_FILE")
-
-const limit = 0
-
-const workers = 500
-
-var delay = (60000 / 5 / 26) * time.Millisecond
-
-const timeout = 5 * time.Minute
-
-// var inputDir = os.Getenv("INPUT_DIR")
-// var outputDir = os.Getenv("OUTPUT_DIR")
 
 var locations = []string{
 	"us-south1",
@@ -100,9 +87,9 @@ func main() {
 		return
 	}
 
-	semaphore := make(chan struct{}, workers)
+	semaphore := make(chan struct{}, opts.Workers)
 	results := make(chan error)
-	ticker := time.NewTicker(delay)
+	ticker := time.NewTicker(opts.Delay)
 	completed := 0
 	total := len(fileNames)
 	files := map[string]struct{}{}
@@ -141,7 +128,7 @@ func main() {
 		}
 
 		go func(count int, prompt, outputFile string) {
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			ctx, cancel := context.WithTimeout(context.Background(), opts.Timeout)
 
 			defer func() {
 				cancel()
@@ -181,7 +168,7 @@ func main() {
 			errs++
 		}
 		completed++
-		if completed == total || (limit > 0 && errs >= limit) {
+		if completed == total || (opts.Limit > 0 && errs >= opts.Limit) {
 			close(results)
 		}
 	}
