@@ -1,7 +1,9 @@
-# Gemini Turbo text generation
+# Gemini Turbo Text Generation
 
 This is a text generation tool that uses Gemini AI to generate text based on prompts files.
 Utilizes different locations and performs jobs in parallel to speed up the process.
+
+🚀 With default rate limits it can generate up to 130 texts per minute.
 
 ## Setup
 
