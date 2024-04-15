@@ -19,7 +19,7 @@ type options struct {
 	CredFile        string        `long:"cred" env:"GOOGLE_CRED_FILE" description:"Google Credential File"`
 	InputDir        string        `long:"in" env:"INPUT_DIR" default:"./prompts" description:"Input directory"`
 	OutputDir       string        `long:"out" env:"OUTPUT_DIR" default:"./out" description:"Output directory"`
-	Temperature     float32       `long:"temp" env:"TEMPERATURE" default:"0.5" description:"Temperature"`
+	Temperature     float32       `long:"temp" env:"TEMPERATURE" default:"1" description:"Temperature"`
 	MaxTokens       int           `long:"max_tokens" env:"MAX_TOKENS" default:"8000" description:"Max tokens"`
 	Workers         int           `long:"workers" env:"WORKERS" default:"500" description:"Workers"`
 	Delay           time.Duration `long:"delay" env:"DELAY" default:"500ms" description:"Delay between requests in ms. Should be more than 60000 / req per min limit (5 by default) / number of locations"`
