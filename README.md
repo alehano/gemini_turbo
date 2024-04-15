@@ -29,7 +29,7 @@ Application Options:
       --temp=       Temperature (default: 1) [$TEMPERATURE]
       --max_tokens= Max tokens (default: 8000) [$MAX_TOKENS]
       --workers=    Workers (default: 500) [$WORKERS]
-      --delay=      Delay between requests in ms. Should be more than 60000 / req per min limit (5 by default) / number of locations (default: 500ms) [$DELAY]
+      --delay=      Delay between requests in ms. Shouldn't be more than 60000 / req per min limit (5 by default) / number of locations (default: 500ms) [$DELAY]
       --timeout=    Timeout for each request (default: 300s) [$TIMEOUT]
       --limit=      Limit files to process. Can be used for testing. 0 means no limit (default: 0) [$LIMIT]
 

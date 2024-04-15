@@ -22,7 +22,7 @@ type options struct {
 	Temperature     float32       `long:"temp" env:"TEMPERATURE" default:"1" description:"Temperature"`
 	MaxTokens       int           `long:"max_tokens" env:"MAX_TOKENS" default:"8000" description:"Max tokens"`
 	Workers         int           `long:"workers" env:"WORKERS" default:"500" description:"Workers"`
-	Delay           time.Duration `long:"delay" env:"DELAY" default:"500ms" description:"Delay between requests in ms. Should be more than 60000 / req per min limit (5 by default) / number of locations"`
+	Delay           time.Duration `long:"delay" env:"DELAY" default:"500ms" description:"Delay between requests in ms. Shouldn't be more than 60000 / req per min limit (5 by default) / number of locations"`
 	Timeout         time.Duration `long:"timeout" env:"TIMEOUT" default:"300s" description:"Timeout for each request"`
 	Limit           int           `long:"limit" env:"LIMIT" default:"0" description:"Limit files to process. Can be used for testing. 0 means no limit"`
 }
