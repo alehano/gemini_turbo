@@ -57,6 +57,7 @@ var locations = []string{
 }
 
 const redColor = "\033[31m"
+const grayColor = "\033[90m"
 const greenColor = "\033[32m"
 const resetColor = "\033[0m"
 
@@ -111,14 +112,14 @@ func main() {
 		outputFileName := strings.TrimSuffix(fName, ".prompt")
 		outputFile = fmt.Sprintf("%s/%s", opts.OutputDir, outputFileName)
 		if _, err := os.Stat(outputFile); err == nil {
-			fmt.Printf("File %s already exists. Skipping.\n", outputFile)
+			fmt.Printf(grayColor+"File %s already exists. Skipping.\n"+resetColor, outputFile)
 			completed++
 			continue
 		}
 
 		// Skip if the file has already been processed
 		if _, ok := files[outputFile]; ok {
-			fmt.Printf("File %s already processing. Skipping.\n", outputFile)
+			fmt.Printf(grayColor+"File %s already processing. Skipping.\n"+resetColor, outputFile)
 			completed++
 			continue
 		}
@@ -233,7 +234,7 @@ func QueryGemini(ctx context.Context, client *genai.Client, model string, jobN i
 
 	res := ""
 
-	fmt.Printf(greenColor+"%s Job %d done\n"+resetColor, nowDateTime(), jobN)
+	fmt.Printf(greenColor+"%d %s Job done\n"+resetColor, jobN, nowDateTime())
 
 	if len(resp.Candidates) > 0 && resp.Candidates[0] != nil && resp.Candidates[0].Content != nil &&
 		len(resp.Candidates[0].Content.Parts) > 0 {
