@@ -181,7 +181,7 @@ func main() {
 			errs++
 		}
 		completed++
-		if completed == total || (opts.Limit > 0 && errs >= opts.Limit) {
+		if completed == total {
 			close(results)
 		}
 	}
